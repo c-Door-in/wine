@@ -1,4 +1,32 @@
-env/
-.vscode/
-parse_xls.py
+# The file containing environment variables 
+.env
 
+# Ignore the node_modules directory
+node_modules/
+
+# Ignore Logs
+logs
+*.log
+
+# Ignore IDE specific files
+.idea/
+.vscode/
+*.sw*
+
+# Ignore venv folder
+env/
+
+# Caches
+**/__pycache__
+
+# Ignore OS specified files
+**/Thumbs.db
+**/.DS_Store
+
+# Ignore temp files
+~**
+
+# Ignore work files
+input/
+parse_xls.py
+index.html
