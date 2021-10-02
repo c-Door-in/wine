@@ -113,7 +113,7 @@
             </p>
           </div>
         </div>
-        {% for category, wine_cards in sorted_wine_cards.items() %}
+        {% for category, wine_cards in wine_cards_groups.items()|sort %}
           <div class="row">
             <div class="col-12 section-title text-center mb-5">
               <h2 class="d-block">{{ category }}</h2>
