@@ -28,24 +28,44 @@ def get_wine_cards_from_excel(file):
     return wine_cards_from_excel.to_dict(orient='records')
 
 
-def group_cards_to_categories(source_table, column_name):
-    categories = collections.defaultdict(list)
-    for card in source_table:
-        categories[card[column_name]].append(card)
-    return categories
+def group_cards_to_categories(cards, categories_column_name):
+    groups_by_categories = collections.defaultdict(list)
+    for card in cards:
+        groups_by_categories[card[categories_column_name]].append(card)
+    return groups_by_categories
 
 
-def main():
-    load_dotenv()
-    source_folder_path = os.getenv('SOURCE_FOLDER_PATH')
-    xls_filename = os.getenv('XLS_FILENAME')
-
+def add_missing_args_to_parser(vars_in_dotenv):
     parser = argparse.ArgumentParser(
         description='Create index.html from template using data from wine excel table'
     )
-    parser.add_argument('-src', '--source_filename', default=xls_filename)
-    args = parser.parse_args()
-    source_filename = args.source_filename
+    for var_name, var_value in vars_in_dotenv.items():
+        if var_value:
+            parser.add_argument(
+                f'--{var_name}',
+                default = var_value,
+                help=f'Value in ".env" is "{var_value}". You can change this argument here.'
+            )
+        else:
+            parser.add_argument(
+                f'{var_name}',
+                help = f'This argument is not in ".env". You can point it here.'
+            )
+    return parser.parse_args()
+
+
+def get_vars_from_dotenv(*dotenv_vars_names):
+    load_dotenv()
+    return {var_name: os.getenv(var_name) for var_name in dotenv_vars_names}
+
+
+def main():
+    vars_from_dotenv = get_vars_from_dotenv(
+        'SOURCE_FOLDERPATH',
+        'SOURCE_FILENAME',
+    )
+    args = add_missing_args_to_parser(vars_from_dotenv)
+    source_filepath = '{SOURCE_FOLDERPATH}/{SOURCE_FILENAME}'.format(**vars(args))
 
     env = Environment(
         loader=FileSystemLoader('.'),
@@ -55,12 +75,12 @@ def main():
 
     founded_year = 1920
     age = datetime.datetime.now().year - founded_year
-    wine_cards = get_wine_cards_from_excel(f'{source_folder_path}{source_filename}')
+    wine_cards = get_wine_cards_from_excel(source_filepath)
 
     rendered_page = template.render(
         years_old=age,
         year_word=set_year_word(age),
-        wine_cards_groups=group_cards_to_categories(wine_cards, column_name='Категория'),
+        wine_cards_groups=group_cards_to_categories(wine_cards, 'Категория'),
     )
 
     with open('index.html', 'w', encoding="utf8") as file:
